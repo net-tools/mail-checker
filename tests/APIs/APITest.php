@@ -9,7 +9,7 @@ use \Nettools\MailChecker\APIs\TrumailIo;
 
 
 
-class CheckerTest extends \PHPUnit\Framework\TestCase
+class APITest extends \PHPUnit\Framework\TestCase
 {
     public function test()
     {
