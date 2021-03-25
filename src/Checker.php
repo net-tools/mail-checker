@@ -56,5 +56,18 @@ class Checker
 	{
 		return $this->getAPI()->check($email);
 	}
+	
+	
+	
+	/** 
+	 * Upload a email list to check in batch
+	 *
+	 * @param string[] $list
+	 * @return string Returns the task identifier
+	 */
+	public function upload($list)
+	{
+		return $this->getAPI()->upload($list);
+	}
 }
 ?>

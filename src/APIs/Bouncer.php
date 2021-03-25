@@ -19,6 +19,36 @@ namespace Nettools\MailChecker\APIs;
 class Bouncer extends API
 {
 	const URL = 'https://api.usebouncer.com/v1/email/verify';
+	const BULK_URL = 'https://api.usebouncer.com/v1/email/verify/batch';
+	
+	
+	
+	
+	/**
+	 * Check a list of emails
+	 * 
+	 * @param string[] $list
+	 * @retun string Returns the task id
+	 */
+	function upload($list)
+	{
+		$emails = [];
+		foreach ( $list as $m )
+			$emails[] = ['email'=>$m];
+		
+		
+		// request
+		$response = $this->http->request('POST', self::URL, 
+						 	[ 
+								'json' 		=> $emails,
+								'headers'	=> ['x-api-key' => $this->apikey]
+							]);
+		
+		// http status code
+		if ( $response->getStatusCode() != 200 )
+			throw new Exception("HTTP error " . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . " when uploading email list");
+
+	}
 	
 	
 	
@@ -34,7 +64,7 @@ class Bouncer extends API
 		// request
 		$response = $this->http->request('GET', self::URL, 
 						 	[ 
-								'query' 	=> ['email' => $email],
+								'query' 	=> ['email' => $email, 'timeout' => $this->timeout],
 								'headers'	=> ['x-api-key' => $this->apikey]
 							]);
 		

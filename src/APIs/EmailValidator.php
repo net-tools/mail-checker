@@ -36,7 +36,7 @@ class EmailValidator extends API
 		// request
 		$response = $this->http->request('GET', self::URL, 
 						 	[ 
-								'query' 	=> ['EmailAddress' => $email, 'APIKey' => $this->apikey, 'Timeout' => 5]
+								'query' 	=> ['EmailAddress' => $email, 'Timeout' => $this->timeout, 'APIKey' => $this->apikey, 'Timeout' => 5]
 							]);
 		
 		// http status code

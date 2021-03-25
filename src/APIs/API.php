@@ -19,6 +19,7 @@ abstract class API
 {
 	protected $http;
 	protected $apikey;
+	protected $timeout;
 	
 	
 
@@ -27,11 +28,13 @@ abstract class API
 	 *
 	 * @param \GuzzleHttp\Client $http GuzzleHttp interface to send request through
 	 * @param string $key Api key
+	 * @param int $timeout Timeout for API request (default 5)
 	 */
-	public function __construct(\GuzzleHttp\Client $http, $key = null)
+	public function __construct(\GuzzleHttp\Client $http, $key = null, $timeout = 5)
 	{
 		$this->http = $http;
 		$this->apikey = $key;
+		$this->timeout = $timeout;
 	}
 	
 	
