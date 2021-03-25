@@ -17,14 +17,30 @@ This project makes it possible to check email existence through several webservi
 
 ```php
 
-// getting an API object of the desired webservice, and then creating checker object
-$checker = new Checker(APIs\Bouncer::create('api_key_here'));
+// getting an API object of the desired webservice, and then creating checker object (api key and timeout as parameters)
+$checker = new Checker(APIs\Bouncer::create('api_key_here', 6));
 
 // do some checking stuff
 if ( $checker->check('my_recipient@outlook.com'))
 	echo "ok";
 else
     echo "ko";
+
+```
+
+
+You can also upload an array of email addresses that the webservice will process (depending on the API used, it may answer with a task id to check later, either through a specific API call or by visiting the website)
+
+```php
+
+$api = APIs\Bouncer::create('api_key_here', 6);
+$checker = new Checker($api);
+$taskid = $checker->upload(['address1@me.com', 'otheraddress@here.com']);
+
+// ...
+// later check task processing status
+if ( $api->status($taskid) )
+	$json = $api->download($taskid);
 
 ```
 

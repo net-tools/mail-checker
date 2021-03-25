@@ -30,7 +30,7 @@ class Bouncer extends API
 	 * @param string[] $list
 	 * @retun string Returns the task id
 	 */
-	function upload($list)
+	function upload(array $list)
 	{
 		$emails = [];
 		foreach ( $list as $m )
@@ -38,7 +38,7 @@ class Bouncer extends API
 		
 		
 		// request
-		$response = $this->http->request('POST', self::URL, 
+		$response = $this->http->request('POST', self::BULK_URL, 
 						 	[ 
 								'json' 		=> $emails,
 								'headers'	=> ['x-api-key' => $this->apikey]
@@ -48,6 +48,116 @@ class Bouncer extends API
 		if ( $response->getStatusCode() != 200 )
 			throw new Exception("HTTP error " . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . " when uploading email list");
 
+		
+		// read response
+		if ( $json = (string)($response->getBody()) )
+			if ( $json = json_decode($json) )
+				if ( property_exists($json, 'requestId') )
+					return $json->requestId;
+		
+		
+		throw new Exception("No requestId found for batch uploading in " . __CLASS__ );
+	}
+	
+	
+	
+	/** 
+	 * Check a bulk upload status
+	 *
+	 * @param string $taskid
+	 * @return bool Returns true if the task is finished, otherwise false if the task is still processing
+	 */
+	function status($taskid)
+	{
+		$response = $this->http->request('GET', self::BULK_URL . '/' . $taskid . '/status', 
+						 	[ 
+								'headers'	=> ['x-api-key' => $this->apikey]
+							]);
+		
+		// http status code
+		if ( $response->getStatusCode() != 200 )
+			throw new Exception("HTTP error " . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . " when checking task id status");
+
+		
+		// read response
+		if ( $json = (string)($response->getBody()) )
+			if ( $json = json_decode($json) )
+				if ( property_exists($json, 'status') )
+					if( $json->status =='completed' )
+						return true;
+					else
+						return false;
+		
+		
+		throw new Exception("No status found when checking batch uploading status in " . __CLASS__ );
+	}
+	
+	
+	
+	/** 
+	 * Download results from a bulk list checking
+	 *
+	 * The API answers with an array of objects :
+	 *  [
+	 *	  {
+	 *		"email": "john@usebouncer.com",
+	 *		"name": "John Doe",
+	 *		"status": "deliverable",
+	 *		"reason": "accepted_email",
+	 *		"domain": {
+	 *		  "name": "usebouncer.com",
+	 *		  "acceptAll": "no",
+	 *		  "disposable": "no",
+	 *		  "free": "no"
+	 *		},
+	 *		"account": {
+	 *		  "role": "no",
+	 *		  "disabled": "no",
+	 *		  "fullMailbox": "no"
+	 *		},
+	 *		"provider": "google.com"
+	 *	  },
+	 *	  {
+	 *		"email": "jane@usebouncer.com",
+	 *		"status": "deliverable",
+	 *		"reason": "accepted_email",
+	 *		"domain": {
+	 *		  "name": "usebouncer.com",
+	 *		  "acceptAll": "no",
+	 *		  "disposable": "no",
+	 *		  "free": "no"
+	 *		},
+	 *		"account": {
+	 *		  "role": "no",
+	 *		  "disabled": "no",
+	 *		  "fullMailbox": "no"
+	 *		},
+	 *		"provider": "google.com"
+	 *	  }
+	 *	]
+	 *
+	 * @param string $taskid
+	 * @return string Returns a json-encoded string with API response
+	 */
+	function download($taskid)
+	{
+		$response = $this->http->request('GET', self::BULK_URL . '/' . $taskid, 
+						 	[
+								'query'		=> ['download'	=>'all'],
+								'headers'	=> ['x-api-key' => $this->apikey]
+							]);
+		
+		// http status code
+		if ( $response->getStatusCode() != 200 )
+			throw new Exception("HTTP error " . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . " when downloading task");
+
+		
+		// read response
+		if ( $json = (string)($response->getBody()) )
+			return $json;
+		
+		
+		throw new Exception("No status found when checking batch uploading status in " . __CLASS__ );
 	}
 	
 	

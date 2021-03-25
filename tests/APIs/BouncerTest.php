@@ -11,7 +11,188 @@ use \Nettools\MailChecker\APIs\Bouncer;
 
 class BouncerTest extends \PHPUnit\Framework\TestCase
 {
-    public function test()
+	public function testBulkStatusProcessing()
+	{
+		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response->method('getBody')->willReturn('{
+  "requestId": "605c4fa511ed5167c3440303",
+  "created": "2021-03-25T08:53:57.929Z",
+  "status": "processing",
+  "progress": {
+    "created": 2,
+    "total": 2,
+    "completed": 0
+  },
+  "duplicates": 0
+}');
+				
+		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+		
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('GET'), 
+						$this->equalTo(Bouncer::BULK_URL . '/605c4fa511ed5167c3440303/status'), 
+						$this->equalTo(
+								array(
+									'headers'	=> ['x-api-key' => 'apikey']
+								)
+							)
+					)
+					->willReturn($stub_guzzle_response);
+		
+		
+		$chk = new Bouncer($stub_guzzle, 'apikey');
+		$st = $chk->status('605c4fa511ed5167c3440303');
+		$this->assertEquals(false, $st);
+	}
+	
+	
+	public function testBulkStatusCompleted()
+	{
+		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response->method('getBody')->willReturn('{
+  "requestId": "605c4fa511ed5167c3440303",
+  "created": "2021-03-25T08:53:57.929Z",
+  "status": "completed",
+  "progress": {
+    "created": 2,
+    "total": 2,
+    "completed": 2
+  },
+  "duplicates": 0
+}');
+				
+		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+		
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('GET'), 
+						$this->equalTo(Bouncer::BULK_URL . '/605c4fa511ed5167c3440303/status'), 
+						$this->equalTo(
+								array(
+									'headers'	=> ['x-api-key' => 'apikey']
+								)
+							)
+					)
+					->willReturn($stub_guzzle_response);
+		
+		
+		$chk = new Bouncer($stub_guzzle, 'apikey');
+		$st = $chk->status('605c4fa511ed5167c3440303');
+		$this->assertEquals(true, $st);
+	}
+	
+	
+	public function testBulkDownload()
+	{
+		$jsonbody = '[
+  {
+    "email": "john@usebouncer.com",
+    "name": "John Doe",
+    "status": "deliverable",
+    "reason": "accepted_email",
+    "domain": {
+      "name": "usebouncer.com",
+      "acceptAll": "no",
+      "disposable": "no",
+      "free": "no"
+    },
+    "account": {
+      "role": "no",
+      "disabled": "no",
+      "fullMailbox": "no"
+    },
+    "provider": "google.com"
+  },
+  {
+    "email": "jane@usebouncer.com",
+    "status": "deliverable",
+    "reason": "accepted_email",
+    "domain": {
+      "name": "usebouncer.com",
+      "acceptAll": "no",
+      "disposable": "no",
+      "free": "no"
+    },
+    "account": {
+      "role": "no",
+      "disabled": "no",
+      "fullMailbox": "no"
+    },
+    "provider": "google.com"
+  }
+]';
+		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response->method('getBody')->willReturn($jsonbody);
+				
+		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+		
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('GET'), 
+						$this->equalTo(Bouncer::BULK_URL . '/605c4fa511ed5167c3440303'), 
+						$this->equalTo(
+								array(
+									'query'		=> ['download' => 'all'],
+									'headers'	=> ['x-api-key' => 'apikey']
+								)
+							)
+					)
+					->willReturn($stub_guzzle_response);
+		
+		
+		$chk = new Bouncer($stub_guzzle, 'apikey');
+		$json = $chk->download('605c4fa511ed5167c3440303');
+		$this->assertEquals($jsonbody, $json);
+	}
+	
+	
+	public function testBulk()
+	{
+		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response->method('getBody')->willReturn('{
+  "requestId": "605c4fa511ed5167c3440303",
+  "created": "2021-03-25T08:53:57.929Z",
+  "status": "created",
+  "progress": {
+    "created": 2,
+    "total": 2,
+    "completed": 0
+  },
+  "duplicates": 0
+}');
+				
+		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+		
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('POST'), 
+						$this->equalTo(Bouncer::BULK_URL), 
+						$this->equalTo(
+								array(
+									'json' => [['email'=>'xxxx@gmail.com'], ['email'=>'yyyy@gmail.com']],
+									'headers'	=> ['x-api-key' => 'apikey']
+								)
+							)
+					)
+					->willReturn($stub_guzzle_response);
+		
+		
+		$chk = new Bouncer($stub_guzzle, 'apikey');
+		$id = $chk->upload(['xxxx@gmail.com', 'yyyy@gmail.com']);
+		$this->assertEquals('605c4fa511ed5167c3440303', $id);
+	}
+	
+	
+    public function testBouncer()
     {
 /*
 		{
@@ -62,6 +243,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 								array(
 									'query' => [
 										'email'		=> 'xxxx@gmail.com',
+										'timeout'	=> 7
 									],
 									'headers'	=> ['x-api-key' => 'apikey']
 								)
@@ -71,7 +253,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 		
 		
 		
-		$chk = new Bouncer($stub_guzzle, 'apikey');
+		$chk = new Bouncer($stub_guzzle, 'apikey', 7);
 		$r = $chk->check('xxxx@gmail.com');
 		$this->assertEquals(true, $r);
     }
@@ -110,6 +292,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 								array(
 									'query' => [
 										'email'		=> 'xxxx@gmail.com',
+										'timeout'	=> 5
 									],
 									'headers'	=> ['x-api-key' => 'apikey']
 								)
@@ -142,6 +325,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 								array(
 									'query' => [
 										'email'		=> 'xxxx@gmail.com',
+										'timeout'	=> 5
 									],
 									'headers'	=> ['x-api-key' => 'apikey']
 								)
@@ -175,6 +359,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 								array(
 									'query' => [
 										'email'		=> 'xxxx@gmail.com',
+										'timeout'	=> 5
 									],
 									'headers'	=> ['x-api-key' => 'apikey']
 								)

@@ -19,6 +19,45 @@ namespace Nettools\MailChecker\APIs;
 class EmailValidator extends API
 {
 	const URL = 'https://api.email-validator.net/api/verify';
+	const BULK_URL = 'https://bulk.email-validator.net/api/verify';
+	
+	
+	
+	
+	/**
+	 * Check a list of emails
+	 * 
+	 * @param string[] $list
+	 * @retun string Returns the task id
+	 */
+	function upload(array $list)
+	{
+		// request
+		$response = $this->http->request('POST', self::BULK_URL, 
+						 	[ 
+								'form_params'	=> [
+									'EmailAddress' 	=> implode("\n", $list),
+									'APIKey'		=> $this->apikey,
+									'ValidationMode'=> 'express'
+									]
+							]);
+		
+		
+		// http status code
+		if ( $response->getStatusCode() != 200 )
+			throw new Exception("HTTP error " . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . " when uploading email list");
+
+		
+		// read response
+		if ( $json = (string)($response->getBody()) )
+			if ( $json = json_decode($json) )
+				if ( property_exists($json, 'status') )
+					if ( $json->status == 121 )
+						return $json->info;
+		
+		
+		throw new Exception("No task id found for batch uploading in " . __CLASS__ );
+	}
 	
 	
 	
@@ -36,7 +75,7 @@ class EmailValidator extends API
 		// request
 		$response = $this->http->request('GET', self::URL, 
 						 	[ 
-								'query' 	=> ['EmailAddress' => $email, 'Timeout' => $this->timeout, 'APIKey' => $this->apikey, 'Timeout' => 5]
+								'query' 	=> ['EmailAddress' => $email, 'Timeout' => $this->timeout, 'APIKey' => $this->apikey]
 							]);
 		
 		// http status code

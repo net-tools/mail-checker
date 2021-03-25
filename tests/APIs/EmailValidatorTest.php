@@ -11,6 +11,42 @@ use \Nettools\MailChecker\APIs\EmailValidator;
 
 class EmailValidatorTest extends \PHPUnit\Framework\TestCase
 {
+ 	public function testBulk()
+	{
+		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response->method('getBody')->willReturn('{
+  "status": "121",
+  "info": "458a6678542"
+}');
+				
+		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+		
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('POST'), 
+						$this->equalTo(EmailValidator::BULK_URL), 
+						$this->equalTo(
+								array(
+									'form_params' => [
+										'EmailAddress' 	=> "xxxx@gmail.com\nyyyy@gmail.com",
+										'APIKey'		=> 'apikey',
+										'ValidationMode'=> 'express'
+									]
+								)
+							)
+					)
+					->willReturn($stub_guzzle_response);
+		
+		
+		$chk = new EmailValidator($stub_guzzle, 'apikey');
+		$id = $chk->upload(['xxxx@gmail.com', 'yyyy@gmail.com']);
+		$this->assertEquals('458a6678542', $id);
+	}
+	
+	
+	
     public function test()
     {
 /*

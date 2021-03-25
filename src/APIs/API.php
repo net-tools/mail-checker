@@ -45,9 +45,10 @@ abstract class API
 	 * Late static binding is use to know which is the real calling class	 
 	 *
 	 * @param string $key Api key
+	 * @param int $timeout Timeout for API request (default 5)
 	 * @return Nettools\MailChecker\APIs\API
 	 */
-	static function create($key = null)
+	static function create($key = null, $timeout = 5)
 	{
 		$class = get_called_class();
 		return new $class(new \GuzzleHttp\Client(), $key);
