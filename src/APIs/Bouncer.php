@@ -205,7 +205,7 @@ class Bouncer extends API
 		if ( $json = (string)($response->getBody()) )
 			if ( $json = json_decode($json) )
 				if ( property_exists($json, 'status') )
-					return ($json->status == 'deliverable');
+					return ($json->status == 'deliverable') || ($json->status == 'risky');
 		
 		throw new Exception("API error for email '$email' in " . __CLASS__ );
 	}
