@@ -35,7 +35,7 @@ class EmailVerification extends API
 		$response = $this->http->request('POST', self::BULK_URL, 
 						 	[ 
 								'json' 		=> [
-									'apiKey'	=> $this->apiKey,
+									'apiKey'	=> $this->apikey,
 									'emails'	=> $list,
 									'format'	=> 'json'
 								]
@@ -69,7 +69,7 @@ class EmailVerification extends API
 		$response = $this->http->request('POST', self::BULK_URL . '/status', 
 						 	[ 
 								'json' 		=> [
-									'apiKey'	=> $this->apiKey,
+									'apiKey'	=> $this->apikey,
 									'ids'		=> [$taskid],
 									'format'	=> 'json'
 								]
@@ -158,7 +158,7 @@ class EmailVerification extends API
 		$response = $this->http->request('POST', self::BULK_URL . '/completed', 
 						 	[ 
 								'json' 		=> [
-									'apiKey'	=> $this->apiKey,
+									'apiKey'	=> $this->apikey,
 									'id'		=> $taskid,
 									'format'	=> 'json'
 								]
@@ -191,7 +191,7 @@ class EmailVerification extends API
 		$response = $this->http->request('POST', self::BULK_URL . '/failed', 
 						 	[ 
 								'json' 		=> [
-									'apiKey'	=> $this->apiKey,
+									'apiKey'	=> $this->apikey,
 									'id'		=> $taskid,
 									'format'	=> 'json'
 								]
