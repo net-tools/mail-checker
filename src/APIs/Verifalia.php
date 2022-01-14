@@ -98,7 +98,15 @@ class Verifalia extends API
 
 
 		// if still processing, we have http error code 202, otherwise 200
-		return ( $response->getStatusCode() == 200 );
+		$code = $response->getStatusCode();
+		
+		if ( $code == 200 )
+			return true;
+		else if ( $code == 202 )
+			return false;
+		
+		
+		throw new Exception("HTTP error $code " . $response->getReasonPhrase() . " when checking status");
 	}
 	
 	

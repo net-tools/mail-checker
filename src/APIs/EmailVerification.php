@@ -49,7 +49,7 @@ class EmailVerification extends API
 		// read response
 		if ( $json = (string)($response->getBody()) )
 			if ( $json = json_decode($json) )
-				if ( property_exists($json, 'response') )
+				if ( property_exists($json, 'response') && property_exists($json->response, 'id') )
 					return $json->response->id;
 		
 		
@@ -66,6 +66,17 @@ class EmailVerification extends API
 	 */
 	function status($taskid)
 	{
+		/*
+		{
+            "id": 544,
+            "date_start": "1528204702",
+            "total_emails": 500,
+            "invalid_emails": 0,
+            "processed_emails": 500,
+            "failed_emails": 0,
+            "ready": 1
+        }
+		*/
 		$response = $this->http->request('POST', self::BULK_URL . '/status', 
 						 	[ 
 								'json' 		=> [
@@ -183,6 +194,12 @@ class EmailVerification extends API
 	/** 
 	 * Download results from a bulk list checking for failed requests
 	 *
+	 *	{
+	 *		"response": [{
+	 *			"error": "Invalid format",
+	 *			"emailAddress": "ab@dd"
+	 *		}]
+	 *	}
 	 * @param string $taskid
 	 * @return string Returns a json-encoded string with API response
 	 */
