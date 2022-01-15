@@ -173,8 +173,25 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$json = '{
+		$json_completed = '{
 	 		"response": [
+	 			{
+	 				"emailAddress": "bob@google.com",
+	 				"formatCheck": "true",
+	 				"smtpCheck": "true",
+	 				"dnsCheck": "true",
+	 				"freeCheck": "false",
+	 				"disposableCheck": "false",
+	 				"catchAllCheck": "true",
+	 				"mxRecords": [
+	 					"alt2.aspmx.l.google.com",
+	 					"alt3.aspmx.l.google.com",
+	 					"alt4.aspmx.l.google.com",
+	 					"aspmx.l.google.com",
+	 					"alt1.aspmx.l.google.com"
+	 				],
+	 				"result": "unknown"
+	 			},
 	 			{
 	 				"emailAddress": "alex@alex.edu",
 	 				"formatCheck": "true",
@@ -184,7 +201,74 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 	 				"disposableCheck": "false",
 	 				"catchAllCheck": "null",
 	 				"result": "bad"
-	 			},
+	 			}
+	 		]
+		}';
+		$json_failed = '{
+	 		"response": [
+				{
+	 				"emailAddress": "nobody@nowhere",
+					"error"	: "syntax error"
+				}
+	 		]
+		}';
+		$stub_guzzle_response->method('getBody')->will($this->onConsecutiveCalls($json_completed, $json_failed));
+		
+				
+		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+		
+		// asserting that method Request is called with the right parameters, 
+		$stub_guzzle->expects($this->exactly(2))->method('request')->withConsecutive(
+					[
+						$this->equalTo('POST'), 
+						$this->equalTo(EmailVerification::BULK_URL . '/completed'), 
+						$this->equalTo(
+								array(
+									'json' => [
+										'id'	 		=> "544",
+										'apiKey'		=> 'apikey',
+										'format'		=> 'json'
+									]
+								)
+							)
+					],
+			
+			
+					[
+						$this->equalTo('POST'), 
+						$this->equalTo(EmailVerification::BULK_URL . '/failed'),
+						$this->equalTo(
+								array(
+									'json' => [
+										'id'	 		=> "544",
+										'apiKey'		=> 'apikey',
+										'format'		=> 'json'
+									]
+								)
+							)
+					])
+					->willReturn($stub_guzzle_response);
+		
+		
+		$chk = new EmailVerification($stub_guzzle, 'apikey');
+		$ret = $chk->download('544');
+		
+		$this->assertEquals(true, is_array($ret));
+		$this->assertEquals(3, count($ret));
+		$this->assertInstanceOf(\Nettools\MailChecker\Res\Response::class, $ret[0]);
+		$this->assertInstanceOf(\Nettools\MailChecker\Res\Response::class, $ret[1]);
+		$this->assertInstanceOf(\Nettools\MailChecker\Res\Response::class, $ret[2]);
+		
+		$this->assertEquals('bob@google.com', $ret[0]->email);
+		$this->assertEquals('alex@alex.edu', $ret[1]->email);
+		$this->assertEquals('nobody@nowhere', $ret[2]->email);
+		$this->assertEquals(true, $ret[0]->valid);
+		$this->assertEquals(false, $ret[1]->valid);
+		$this->assertEquals(false, $ret[2]->valid);
+		
+		
+		$bob = json_decode('
 	 			{
 	 				"emailAddress": "bob@google.com",
 	 				"formatCheck": "true",
@@ -202,33 +286,29 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 	 				],
 	 				"result": "unknown"
 	 			}
-	 		]
-		}';
-		$stub_guzzle_response->method('getBody')->willReturn($json);
-				
-		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
-		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+		');
+		$alex = json_decode('
+	 			{
+	 				"emailAddress": "alex@alex.edu",
+	 				"formatCheck": "true",
+	 				"smtpCheck": "null",
+	 				"dnsCheck": "false",
+	 				"freeCheck": "false",
+	 				"disposableCheck": "false",
+	 				"catchAllCheck": "null",
+	 				"result": "bad"
+	 			}
+		');
+		$nobody = json_decode('
+				{
+	 				"emailAddress": "nobody@nowhere",
+					"error"	: "syntax error"
+				}
+		');
 		
-		// asserting that method Request is called with the right parameters, 
-		$stub_guzzle->expects($this->once())->method('request')->with(
-						$this->equalTo('POST'), 
-						$this->equalTo(EmailVerification::BULK_URL . '/completed'), 
-						$this->equalTo(
-								array(
-									'json' => [
-										'id'	 		=> "544",
-										'apiKey'		=> 'apikey',
-										'format'		=> 'json'
-									]
-								)
-							)
-					)
-					->willReturn($stub_guzzle_response);
-		
-		
-		$chk = new EmailVerification($stub_guzzle, 'apikey');
-		$js = $chk->download('544');
-		$this->assertEquals($json, $js);
+		$this->assertEquals($bob, $ret[0]->data);
+		$this->assertEquals($alex, $ret[1]->data);
+		$this->assertEquals($nobody, $ret[2]->data);
 	}
 	
 	
@@ -264,85 +344,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 		$js = $chk->download('544');
 	}
 	
-	
-	
- 	public function testDownloadFailed()
-	{
-		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
-		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$json = '{
-	 		"response": [
-			{
-	 			"error": "Invalid format",
-	 			"emailAddress": "ab@dd"
-	 		},
-			{
-	 			"error": "Invalid format",
-	 			"emailAddress": "ee@af."
-	 		}
-		]}';
-		$stub_guzzle_response->method('getBody')->willReturn($json);
-				
-		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
-		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 		
-		// asserting that method Request is called with the right parameters, 
-		$stub_guzzle->expects($this->once())->method('request')->with(
-						$this->equalTo('POST'), 
-						$this->equalTo(EmailVerification::BULK_URL . '/failed'),
-						$this->equalTo(
-								array(
-									'json' => [
-										'id'	 		=> "544",
-										'apiKey'		=> 'apikey',
-										'format'		=> 'json'
-									]
-								)
-							)
-					)
-					->willReturn($stub_guzzle_response);
-		
-		
-		$chk = new EmailVerification($stub_guzzle, 'apikey');
-		$js = $chk->downloadFailed('544');
-		$this->assertEquals($json, $js);
-	}
-	
-	
-	
- 	public function testDownloadFailedKo()
-	{
-		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
-		$stub_guzzle_response->method('getStatusCode')->willReturn(500);
-				
-		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
-		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		
-		// asserting that method Request is called with the right parameters, 
-		$stub_guzzle->expects($this->once())->method('request')->with(
-						$this->equalTo('POST'), 
-						$this->equalTo(EmailVerification::BULK_URL . '/failed'), 
-						$this->equalTo(
-								array(
-									'json' => [
-										'id'	 		=> "544",
-										'apiKey'		=> 'apikey',
-										'format'		=> 'json'
-									]
-								)
-							)
-					)
-					->willReturn($stub_guzzle_response);
-		
-		
-		$chk = new EmailVerification($stub_guzzle, 'apikey');
-
-		$this->expectException(\Nettools\MailChecker\APIs\Exception::class);
-		$js = $chk->downloadFailed('544');
-	}
-	
-	
-	
     public function test()
     {
 /*

@@ -110,7 +110,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
   },
   {
     "email": "jane@usebouncer.com",
-    "status": "deliverable",
+    "status": "undeliverable",
     "reason": "accepted_email",
     "domain": {
       "name": "usebouncer.com",
@@ -148,8 +148,58 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 		
 		
 		$chk = new Bouncer($stub_guzzle, 'apikey');
-		$json = $chk->download('605c4fa511ed5167c3440303');
-		$this->assertEquals($jsonbody, $json);
+		$ret = $chk->download('605c4fa511ed5167c3440303');
+		
+		$this->assertEquals(true, is_array($ret));
+		$this->assertEquals(2, count($ret));
+		$this->assertInstanceOf(\Nettools\MailChecker\Res\Response::class, $ret[0]);
+		$this->assertInstanceOf(\Nettools\MailChecker\Res\Response::class, $ret[1]);
+		
+		$this->assertEquals('john@usebouncer.com', $ret[0]->email);
+		$this->assertEquals('jane@usebouncer.com', $ret[1]->email);
+		$this->assertEquals(true, $ret[0]->valid);
+		$this->assertEquals(false, $ret[1]->valid);
+		
+		
+		$john = json_decode('{
+    "email": "john@usebouncer.com",
+    "name": "John Doe",
+    "status": "deliverable",
+    "reason": "accepted_email",
+    "domain": {
+      "name": "usebouncer.com",
+      "acceptAll": "no",
+      "disposable": "no",
+      "free": "no"
+    },
+    "account": {
+      "role": "no",
+      "disabled": "no",
+      "fullMailbox": "no"
+    },
+    "provider": "google.com"
+  }');
+		
+		$jane = json_decode('{
+    "email": "jane@usebouncer.com",
+    "status": "undeliverable",
+    "reason": "accepted_email",
+    "domain": {
+      "name": "usebouncer.com",
+      "acceptAll": "no",
+      "disposable": "no",
+      "free": "no"
+    },
+    "account": {
+      "role": "no",
+      "disabled": "no",
+      "fullMailbox": "no"
+    },
+    "provider": "google.com"
+  }');
+		
+		$this->assertEquals($john, $ret[0]->data);
+		$this->assertEquals($jane, $ret[1]->data);
 	}
 	
 	

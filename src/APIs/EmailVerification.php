@@ -12,6 +12,11 @@ namespace Nettools\MailChecker\APIs;
 
 
 
+use \Nettools\MailChecker\Res\Response;
+
+
+
+
 
 /** 
  * Class to handle mail existence check with emailverification.whoisxmlapi.com
@@ -28,6 +33,7 @@ class EmailVerification extends API
 	 * 
 	 * @param string[] $list
 	 * @retun string Returns the task id
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function upload(array $list)
 	{
@@ -63,6 +69,7 @@ class EmailVerification extends API
 	 *
 	 * @param string $taskid
 	 * @return bool Returns true if the task is finished, otherwise false if the task is still processing
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function status($taskid)
 	{
@@ -113,7 +120,7 @@ class EmailVerification extends API
 	/** 
 	 * Download results from a bulk list checking
 	 *
-	 * The API answers with an array of objects :
+	 * completed:
 	 *	{
 	 *		"response": [
 	 *			{
@@ -161,11 +168,25 @@ class EmailVerification extends API
 	 *		]
 	 *	}
 	 *
+	 * failed :
+	 *	{
+	 *		"response": [{
+	 *			"error": "Invalid format",
+	 *			"emailAddress": "ab@dd"
+	 *		}]
+	 *	}
+	 *
 	 * @param string $taskid
-	 * @return string Returns a json-encoded string with API response
+	 * @return \Nettools\MailChecker\Res\Response[] Returns an array of Response objects
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function download($taskid)
 	{
+		$ret = [];
+		
+		
+		
+		// get completed requests
 		$response = $this->http->request('POST', self::BULK_URL . '/completed', 
 						 	[ 
 								'json' 		=> [
@@ -182,62 +203,74 @@ class EmailVerification extends API
 		
 		// read response
 		if ( $json = (string)($response->getBody()) )
-			return $json;
+			if ( $json = json_decode($json) )
+				if ( property_exists($json, 'response') && is_array($json->response) )
+				{
+					foreach ( $json->response as $r )
+						$ret[] = new Response($r->emailAddress, $this->_checkAPIResponse($r), $r);
+
+
+					
+					// now look for failed requests (most probably syntax errors)
+					$response = $this->http->request('POST', self::BULK_URL . '/failed', 
+										[ 
+											'json' 		=> [
+												'apiKey'	=> $this->apikey,
+												'id'		=> $taskid,
+												'format'	=> 'json'
+											]
+										]);
+
+					// http status code
+					if ( $response->getStatusCode() != 200 )
+						throw new Exception("HTTP error " . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . " when downloading task");
+					
+					
+					if ( $json = (string)($response->getBody()) )
+						if ( $json = json_decode($json) )
+							if ( property_exists($json, 'response') && is_array($json->response) )
+							{
+								foreach ( $json->response as $r )
+									$ret[] = new Response($r->emailAddress, false, $r);
+
+								
+								return $ret;
+							}
+				}
 		
 		
-		throw new Exception("No body found when downloading processed requests in " . __CLASS__ );
+		
+		throw new Exception("No readable Json data when downloading job in " . __CLASS__ );
 	}
 	
 	
-	
-	
-	/** 
-	 * Download results from a bulk list checking for failed requests
-	 *
-	 *	{
-	 *		"response": [{
-	 *			"error": "Invalid format",
-	 *			"emailAddress": "ab@dd"
-	 *		}]
-	 *	}
-	 * @param string $taskid
-	 * @return string Returns a json-encoded string with API response
-	 */
-	function downloadFailed($taskid)
-	{
-		$response = $this->http->request('POST', self::BULK_URL . '/failed', 
-						 	[ 
-								'json' 		=> [
-									'apiKey'	=> $this->apikey,
-									'id'		=> $taskid,
-									'format'	=> 'json'
-								]
-							]);
 		
-		// http status code
-		if ( $response->getStatusCode() != 200 )
-			throw new Exception("HTTP error " . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . " when downloading task");
+	/** 
+	 * Test an API raw response data and get a bool about successful validation
+	 *
+	 * @param object $data Raw API response as an object-decoded json string 
+	 * @return bool
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if json API response not readable
+	 */
+	protected function _checkAPIResponse($data)
+	{
+		if ( !is_object($data) || !property_exists($data, 'smtpCheck') )
+			throw new Exception("No readable Json response from API in " . __CLASS__ );		
 
 		
-		// read response
-		if ( $json = (string)($response->getBody()) )
-			return $json;
-		
-		
-		throw new Exception("No body found when downloading failed requests in " . __CLASS__ );
+		return ($data->smtpCheck == 'true');
 	}
-	
 	
 	
 	
 	/**
-	 * Check that a given email exists
+	 * Check that a given email exists and return API data
 	 * 
 	 * @param string $email
-	 * @return bool Returns true if the email can be delivered, false otherwise
-	 * @throws \Nettools\Mailing\MailCheckers\Exception Thrown if API does not return a valid response
+	 * @return \Nettools\MailChecker\Res\Response Returns a Response object holding result of checking and data
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
-	function check($email)
+	function checkDetails($email)
 	{
 		// request
 		$response = $this->http->request('GET', self::URL, 
@@ -276,13 +309,8 @@ class EmailVerification extends API
 		*/
 		
 		// read response
-		if ( $json = (string)($response->getBody()) )
-			if ( $json = json_decode($json) )
-				if ( property_exists($json, 'smtpCheck') )
-					return ($json->smtpCheck == 'true');
-
-		
-		throw new Exception("API error for email '$email' in " . __CLASS__ );
+		$json = json_decode((string)($response->getBody()));
+		return new Response($email, $this->_checkAPIResponse($json), $json);
 	}
 }
 ?>

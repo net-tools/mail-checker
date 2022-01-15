@@ -12,6 +12,11 @@ namespace Nettools\MailChecker\APIs;
 
 
 
+use \Nettools\MailChecker\Res\Response;
+
+
+
+
 
 /** 
  * Class to handle mail existence check with Verifalia
@@ -41,6 +46,7 @@ class Verifalia extends API
 	 * 
 	 * @param string[] $list
 	 * @retun string Returns the task id
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function upload(array $list)
 	{
@@ -86,6 +92,7 @@ class Verifalia extends API
 	 *
 	 * @param string $pollurl
 	 * @return bool Returns true if the task is finished, otherwise false if the task is still processing
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function status($pollurl)
 	{
@@ -154,7 +161,8 @@ class Verifalia extends API
 	 *	}
 	 *
 	 * @param string $taskid
-	 * @return string Returns a json-encoded string with API response
+	 * @return \Nettools\MailChecker\Res\Response[] Returns an array of Response objects
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function download($pollurl)
 	{
@@ -173,22 +181,49 @@ class Verifalia extends API
 		
 		// read response and get ID
 		if ( $json = (string)($response->getBody()) )
-			return $json;
+			// read response and get ID
+			if ( $json = json_decode($json) )
+				if ( property_exists($json, 'entries') && property_exists($json->entries, 'data') && is_array($json->entries->data) )
+				{
+					$ret = [];
+					foreach ( $json->entries->data as $r )
+						$ret[] = new Response($r->emailAddress, $this->_checkAPIResponse($r), $r);
+
+					return $ret;
+				}		
+
 		
+		throw new Exception("No readable Json data found when downloading job in " . __CLASS__ );
+	}
+	
+	
+	
+	/** 
+	 * Test an API raw response data and get a bool about successful validation
+	 *
+	 * @param object $data Raw API response as an object-decoded json string 
+	 * @return bool
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if json API response not readable
+	 */
+	protected function _checkAPIResponse($data)
+	{
+		if ( !is_object($data) || !property_exists($data, 'classification') )
+			throw new Exception("No readable Json response from API in " . __CLASS__ );		
 		
-		throw new Exception("No json body found when downloading batch uploading status in " . __CLASS__ );
+	
+		return $data->classification == 'Deliverable';
 	}
 	
 	
 	
 	/**
-	 * Check that a given email exists
+	 * Check that a given email exists and return API data
 	 * 
 	 * @param string $email
-	 * @return bool Returns true if the email can be delivered, false otherwise
-	 * @throws \Nettools\Mailing\MailCheckers\Exception Thrown if API does not return a valid response
+	 * @return \Nettools\MailChecker\Res\Response Returns a Response object holding result of checking and data
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
-	function check($email)
+	function checkDetails($email)
 	{
 		// submit job and get poll url
 		$job = $this->upload([$email]);
@@ -204,17 +239,11 @@ class Verifalia extends API
 			// if job done
 			if ( $this->status($job) )
 			{
-				// get json response and parse it
-				$json = $this->download($job);
+				// get response array
+				$responses = $this->download($job);
 				
-				// read response and get ID
-				if ( $json = json_decode($json) )
-					if ( property_exists($json, 'entries') )
-						if ( property_exists($json->entries, 'data') )
-							// we have an array with all results for submitted emails ; however, this method only deals with 1 email
-							return $json->entries->data[0]->classification == 'Deliverable';
-
-				throw new Exception("Unreadable json response for email '$email' in " . __CLASS__ );
+				// we have an array with all results for submitted emails ; however, this method only deals with 1 email
+				return $responses[0];
 			}
 			
 

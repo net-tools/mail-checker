@@ -11,6 +11,9 @@
 namespace Nettools\MailChecker\APIs;
 
 
+use \Nettools\MailChecker\Res\Response;
+
+
 
 
 /** 
@@ -29,6 +32,7 @@ class Bouncer extends API
 	 * 
 	 * @param string[] $list
 	 * @retun string Returns the task id
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function upload(array $list)
 	{
@@ -66,6 +70,7 @@ class Bouncer extends API
 	 *
 	 * @param string $taskid
 	 * @return bool Returns true if the task is finished, otherwise false if the task is still processing
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function status($taskid)
 	{
@@ -137,7 +142,8 @@ class Bouncer extends API
 	 *	]
 	 *
 	 * @param string $taskid
-	 * @return string Returns a json-encoded string with API response
+	 * @return \Nettools\MailChecker\Res\Response[] Returns an array of Response objects
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
 	function download($taskid)
 	{
@@ -154,22 +160,47 @@ class Bouncer extends API
 		
 		// read response
 		if ( $json = (string)($response->getBody()) )
-			return $json;
+			if ( $json = json_decode($json) )
+				if ( is_array($json) )
+				{
+					$ret = [];
+					foreach ( $json as $r )
+						$ret[] = new Response($r->email, $this->_checkAPIResponse($r), $r);
+					
+					return $ret;
+				}		
 		
+		throw new Exception("No readable Json data when downlading job results in " . __CLASS__ );
+	}
+	
+	
+	
+	/** 
+	 * Test an API raw response data and get a bool about successful validation
+	 *
+	 * @param object $data Raw API response as an object-decoded json string 
+	 * @return bool
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if json API response not readable
+	 */
+	protected function _checkAPIResponse($data)
+	{
+		if ( !is_object($data) || !property_exists($data, 'status') )
+			throw new Exception("No readable Json response from API in " . __CLASS__ );		
+
 		
-		throw new Exception("No status found when checking batch uploading status in " . __CLASS__ );
+		return ($data->status == 'deliverable') || ($data->status == 'risky');
 	}
 	
 	
 	
 	/**
-	 * Check that a given email exists
+	 * Check that a given email exists and return API data
 	 * 
 	 * @param string $email
-	 * @return bool Returns true if the email can be delivered, false otherwise
-	 * @throws \Nettools\Mailing\MailCheckers\Exception Thrown if API does not return a valid response
+	 * @return \Nettools\MailChecker\Res\Response Returns a Response object holding result of checking and data
+	 * @throws \Nettools\MailChecker\APIs\Exception Thrown if an error occured during http request
 	 */
-	function check($email)
+	function checkDetails($email)
 	{
 		// request
 		$response = $this->http->request('GET', self::URL, 
@@ -202,12 +233,8 @@ class Bouncer extends API
 		*/
 		
 		// read response
-		if ( $json = (string)($response->getBody()) )
-			if ( $json = json_decode($json) )
-				if ( property_exists($json, 'status') )
-					return ($json->status == 'deliverable') || ($json->status == 'risky');
-		
-		throw new Exception("API error for email '$email' in " . __CLASS__ );
+		$json = json_decode((string)($response->getBody()));
+		return new Response($email, $this->_checkAPIResponse($json), $json);
 	}
 }
 ?>

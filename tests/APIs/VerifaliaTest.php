@@ -218,7 +218,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 	 			"quality": "Standard",
 	 			"deduplication": "Off",
 	 			"status": "Completed",
-	 			"noOfEntries": 1,
+	 			"noOfEntries": 2,
 	 			"retention": "30.00:00:00"
 	 		},
 	 		"entries": {
@@ -241,6 +241,22 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 	 					"isFreeEmailAddress": false,
 	 					"status": "Success",
 	 					"classification": "Deliverable"
+	 				},
+	 				{
+	 					"index": 1,
+	 					"inputData": "email2@domain.tld",
+	 					"completedOn": "2022-01-12T16:24:22.5797933Z",
+	 					"emailAddress": "email2@domain.tld",
+	 					"asciiEmailAddressDomainPart": "domain.tld",
+	 					"emailAddressLocalPart": "email2",
+	 					"emailAddressDomainPart": "domain.tld",
+	 					"hasInternationalDomainName": false,
+	 					"hasInternationalMailboxName": false,
+	 					"isDisposableEmailAddress": false,
+	 					"isRoleAccount": false,
+	 					"isFreeEmailAddress": false,
+	 					"status": "Error",
+	 					"classification": "Undeliverable"
 	 				}
 	 			]
 	 		}	
@@ -267,9 +283,61 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 		
 		
 		$chk = new Verifalia($stub_guzzle, 'user:password', 7);
-		$r = $chk->download($pollurl);
+		$ret = $chk->download($pollurl);
 		
-		$this->assertEquals($json, $r);
+		$this->assertEquals(true, is_array($ret));
+		$this->assertEquals(2, count($ret));
+		$this->assertInstanceOf(\Nettools\MailChecker\Res\Response::class, $ret[0]);
+		$this->assertInstanceOf(\Nettools\MailChecker\Res\Response::class, $ret[1]);
+		
+		$this->assertEquals('email@domain.tld', $ret[0]->email);
+		$this->assertEquals('email2@domain.tld', $ret[1]->email);
+		$this->assertEquals(true, $ret[0]->valid);
+		$this->assertEquals(false, $ret[1]->valid);
+
+		
+		$john = json_decode('
+	 				{
+	 					"index": 0,
+	 					"inputData": "email@domain.tld",
+	 					"completedOn": "2022-01-12T16:24:22.5797933Z",
+	 					"emailAddress": "email@domain.tld",
+	 					"asciiEmailAddressDomainPart": "domain.tld",
+	 					"emailAddressLocalPart": "email",
+	 					"emailAddressDomainPart": "domain.tld",
+	 					"hasInternationalDomainName": false,
+	 					"hasInternationalMailboxName": false,
+	 					"isDisposableEmailAddress": false,
+	 					"isRoleAccount": false,
+	 					"isFreeEmailAddress": false,
+	 					"status": "Success",
+	 					"classification": "Deliverable"
+	 				}
+		');
+		
+		$jane = json_decode('
+	 				{
+	 					"index": 1,
+	 					"inputData": "email2@domain.tld",
+	 					"completedOn": "2022-01-12T16:24:22.5797933Z",
+	 					"emailAddress": "email2@domain.tld",
+	 					"asciiEmailAddressDomainPart": "domain.tld",
+	 					"emailAddressLocalPart": "email2",
+	 					"emailAddressDomainPart": "domain.tld",
+	 					"hasInternationalDomainName": false,
+	 					"hasInternationalMailboxName": false,
+	 					"isDisposableEmailAddress": false,
+	 					"isRoleAccount": false,
+	 					"isFreeEmailAddress": false,
+	 					"status": "Error",
+	 					"classification": "Undeliverable"
+	 				}
+		');
+		
+		
+		$this->assertEquals($john, $ret[0]->data);
+		$this->assertEquals($jane, $ret[1]->data);
+		
     }
 	
 
