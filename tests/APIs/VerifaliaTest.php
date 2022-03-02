@@ -173,6 +173,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
     {
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(500);
+		$pollurl = '/verifalia-poll-url-123';
 		
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
