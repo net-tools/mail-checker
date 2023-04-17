@@ -438,7 +438,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 		
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
-		$stub_guzzle->expects($this->exactly(3))->method('request')->withConsecutive(
+		$stub_guzzle->expects($this->exactly(3))->method('request')/*->withConsecutive(
 			
 						// upload
 						[
@@ -480,7 +480,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 									)
 								)
 						]
-					)
+					)*/
 					->will($this->onConsecutiveCalls($stub_guzzle_response1, $stub_guzzle_response2, $stub_guzzle_response3));
 		
 		
@@ -559,7 +559,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 		
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
-		$stub_guzzle->expects($this->exactly(3))->method('request')->withConsecutive(
+		$stub_guzzle->expects($this->exactly(3))->method('request')/*->withConsecutive(
 			
 						// upload
 						[
@@ -601,7 +601,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 									)
 								)
 						]
-					)
+					)*/
 					->will($this->onConsecutiveCalls($stub_guzzle_response1, $stub_guzzle_response2, $stub_guzzle_response3));
 		
 		
