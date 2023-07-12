@@ -219,7 +219,29 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 		
 		// asserting that method Request is called with the right parameters, 
-		$stub_guzzle->expects($this->exactly(2))->method('request')/*->withConsecutive(
+		$stub_guzzle->expects($this->exactly(2))->method('request')
+			->with($this
+				->given('POST', EmailVerification::BULK_URL . '/completed', array(
+																				'json' => [
+																					'id'	 		=> "544",
+																					'apiKey'		=> 'apikey',
+																					'format'		=> 'json'
+																				]
+																			)
+					   )->return($stub_guzzle_response)
+				->given('POST', EmailVerification::BULK_URL . '/failed', 	array(
+																				'json' => [
+																					'id'	 		=> "544",
+																					'apiKey'		=> 'apikey',
+																					'format'		=> 'json'
+																				]
+																			)
+						)->return($stub_guzzle_response)
+			);
+				   
+				   
+				   
+			/*->withConsecutive(
 					[
 						$this->equalTo('POST'), 
 						$this->equalTo(EmailVerification::BULK_URL . '/completed'), 
@@ -248,7 +270,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 								)
 							)
 					])*/
-					->willReturn($stub_guzzle_response);
+					//->willReturn($stub_guzzle_response);
 		
 		
 		$chk = new EmailVerification($stub_guzzle, 'apikey');

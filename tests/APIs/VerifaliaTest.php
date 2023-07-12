@@ -438,7 +438,33 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 		
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
-		$stub_guzzle->expects($this->exactly(3))->method('request')/*->withConsecutive(
+		$stub_guzzle->expects($this->exactly(3))->method('request')
+			->with($this
+				->given('POST', Verifalia::URL, 	array(
+														'json'		=> [
+															'entries'	=> [ ['inputData'=>'xxxx@gmail.com'] ]
+														],
+														'auth'		=> ['user', 'password'],
+														'allow_redirects'	=> false
+													)
+					   )->return($stub_guzzle_response1)
+				   
+				->given('GET', Verifalia::HOST . $pollurl . '/overview', 	array(
+																				'auth'		=> ['user', 'password'],
+																				'allow_redirects'	=> false
+																			)
+					   )->return($stub_guzzle_response2)
+				   
+				->given('GET', Verifalia::HOST . $pollurl, 	array(
+																'auth'		=> ['user', 'password'],
+																'allow_redirects'	=> false
+															)
+					   )->return($stub_guzzle_response3)
+			);
+			
+			
+			
+			/*->withConsecutive(
 			
 						// upload
 						[
@@ -481,10 +507,8 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 								)
 						]
 					)*/
-					->will($this->onConsecutiveCalls($stub_guzzle_response1, $stub_guzzle_response2, $stub_guzzle_response3));
-		
-		
-		
+					//->will($this->onConsecutiveCalls($stub_guzzle_response1, $stub_guzzle_response2, $stub_guzzle_response3));
+				
 		
 		
 		
@@ -559,7 +583,33 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 		
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
-		$stub_guzzle->expects($this->exactly(3))->method('request')/*->withConsecutive(
+		$stub_guzzle->expects($this->exactly(3))->method('request')
+			->with($this
+				->given('POST', Verifalia::URL, 	array(
+														'json'		=> [
+															'entries'	=> [ ['inputData'=>'xxxx@gmail.com'] ]
+														],
+														'auth'		=> ['user', 'password'],
+														'allow_redirects'	=> false
+													)
+					   )->return($stub_guzzle_response1)
+				   
+				->given('GET', Verifalia::HOST . $pollurl . '/overview', 	array(
+																				'auth'		=> ['user', 'password'],
+																				'allow_redirects'	=> false
+																			)
+					   )->return($stub_guzzle_response2)
+				   
+				->given('GET', Verifalia::HOST . $pollurl, 	array(
+																'auth'		=> ['user', 'password'],
+																'allow_redirects'	=> false
+															)
+					   )->return($stub_guzzle_response3)
+			);
+			
+			
+			
+			/*->withConsecutive(
 			
 						// upload
 						[
@@ -602,11 +652,9 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 								)
 						]
 					)*/
-					->will($this->onConsecutiveCalls($stub_guzzle_response1, $stub_guzzle_response2, $stub_guzzle_response3));
+					//->will($this->onConsecutiveCalls($stub_guzzle_response1, $stub_guzzle_response2, $stub_guzzle_response3));
 		
-		
-		
-		
+				
 		
 		
 		
