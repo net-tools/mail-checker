@@ -226,7 +226,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 		
 		// asserting that method Request is called with the right parameters, 
 		$stub_guzzle->expects($this->exactly(2))->method('request')
-			->with($this
+			->will($this
 				->given('POST', EmailVerification::BULK_URL . '/completed', array(
 																				'json' => [
 																					'id'	 		=> "544",

@@ -446,7 +446,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 		
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->exactly(3))->method('request')
-			->with($this
+			->will($this
 				->given('POST', Verifalia::URL, 	array(
 														'json'		=> [
 															'entries'	=> [ ['inputData'=>'xxxx@gmail.com'] ]
@@ -591,7 +591,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 		
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->exactly(3))->method('request')
-			->with($this
+			->will($this
 				->given('POST', Verifalia::URL, 	array(
 														'json'		=> [
 															'entries'	=> [ ['inputData'=>'xxxx@gmail.com'] ]
