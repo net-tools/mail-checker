@@ -5,13 +5,19 @@ namespace Nettools\MailChecker\Tests;
 
 
 use \Nettools\MailChecker\APIs\EmailVerification;
+use \olvlvl\Given\GivenTrait;
 
 
 
 
 class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 {
- 	public function testBulk()
+	use GivenTrait;
+
+	
+	
+	
+	public function testBulk()
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);

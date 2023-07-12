@@ -4,13 +4,20 @@ namespace Nettools\MailChecker\Tests;
 
 
 
+
 use \Nettools\MailChecker\APIs\Verifalia;
+use \olvlvl\Given\GivenTrait;
+
+
 
 
 
 
 class VerifaliaTest extends \PHPUnit\Framework\TestCase
 {
+	use GivenTrait;
+
+	
 	
     public function testUpload()
     {
