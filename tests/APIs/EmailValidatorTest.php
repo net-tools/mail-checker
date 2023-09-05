@@ -11,6 +11,12 @@ use \Nettools\MailChecker\APIs\EmailValidator;
 
 class EmailValidatorTest extends \PHPUnit\Framework\TestCase
 {
+    static function toStream($str)
+    {
+         return \GuzzleHttp\Psr7\Utils::streamFor($str);
+    }
+    
+    
     public function test()
     {
 /*
@@ -21,9 +27,9 @@ class EmailValidatorTest extends \PHPUnit\Framework\TestCase
 */
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 		  "status":200,"ratelimit_remain":99,"ratelimit_seconds":299,"info":"OK - Valid Address","details":"The mail address is valid.","freemail":true
-		}');
+		}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -57,9 +63,9 @@ class EmailValidatorTest extends \PHPUnit\Framework\TestCase
     {
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 		  "status":410,"ratelimit_remain":99,"ratelimit_seconds":299,"info":"Address rejected","details":"The mail server for the recipient domain does not accept messages to this address.","freemail":true
-		}');
+		}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);

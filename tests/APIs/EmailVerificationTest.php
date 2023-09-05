@@ -14,18 +14,24 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 {
 	use GivenTrait;
 
+    
 	
+    static function toStream($str)
+    {
+         return \GuzzleHttp\Psr7\Utils::streamFor($str);
+    }
+    
 	
 	
 	public function testBulk()
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
   "response" : {
   	"id" : "job_id"
   }
-}');
+}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -91,7 +97,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 		  "response" : [
 				  {
 					"id": 544,
@@ -102,7 +108,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 					"failed_emails": 0,
 					"ready": 0
 				}
-		]}');
+		]}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -135,7 +141,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 		  "response" : [
 				  {
 					"id": 544,
@@ -146,7 +152,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 					"failed_emails": 0,
 					"ready": 1
 				}
-		]}');
+		]}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -218,7 +224,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 				}
 	 		]
 		}';
-		$stub_guzzle_response->method('getBody')->will($this->onConsecutiveCalls($json_completed, $json_failed));
+		$stub_guzzle_response->method('getBody')->will($this->onConsecutiveCalls(self::toStream($json_completed), self::toStream($json_failed)));
 		
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
@@ -402,7 +408,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 */
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 			"username": "user",
 			"domain": "domain.tld",
 			"emailAddress": "user@domain.tld",
@@ -424,7 +430,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 				"auditCreatedDate": "2018-04-19 18:12:45.000 UTC",
 				"auditUpdatedDate": "2018-04-19 18:12:45.000 UTC"
 			}
-		}');
+		}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -457,7 +463,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
     {
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 			"username": "user",
 			"domain": "domain.tld",
 			"emailAddress": "user@domain.tld",
@@ -479,7 +485,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 				"auditCreatedDate": "2018-04-19 18:12:45.000 UTC",
 				"auditUpdatedDate": "2018-04-19 18:12:45.000 UTC"
 			}
-		}');
+		}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);

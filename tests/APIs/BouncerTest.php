@@ -11,11 +11,17 @@ use \Nettools\MailChecker\APIs\Bouncer;
 
 class BouncerTest extends \PHPUnit\Framework\TestCase
 {
+    static function toStream($str)
+    {
+         return \GuzzleHttp\Psr7\Utils::streamFor($str);
+    }
+    
+    
 	public function testBulkStatusProcessing()
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
   "requestId": "605c4fa511ed5167c3440303",
   "created": "2021-03-25T08:53:57.929Z",
   "status": "processing",
@@ -25,7 +31,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
     "completed": 0
   },
   "duplicates": 0
-}');
+}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -53,7 +59,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
   "requestId": "605c4fa511ed5167c3440303",
   "created": "2021-03-25T08:53:57.929Z",
   "status": "completed",
@@ -63,7 +69,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
     "completed": 2
   },
   "duplicates": 0
-}');
+}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -128,7 +134,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 ]';
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn($jsonbody);
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream($jsonbody));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -207,7 +213,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 	{
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
   "requestId": "605c4fa511ed5167c3440303",
   "created": "2021-03-25T08:53:57.929Z",
   "status": "created",
@@ -217,7 +223,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
     "completed": 0
   },
   "duplicates": 0
-}');
+}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -265,7 +271,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 */
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 		  "email": "xxxx@gmail.com",
 		  "status": "deliverable",
 		  "reason": "accepted_email",
@@ -280,7 +286,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 			"disabled": "no",
 			"fullMailbox": "no"
 		  }
-		}');
+		}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -314,7 +320,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
     {
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{
 		  "email": "xxxx@gmail.com",
 		  "status": "undeliverable",
 		  "reason": "rejected_email",
@@ -329,7 +335,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
 			"disabled": "no",
 			"fullMailbox": "no"
 		  }
-		}');
+		}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -362,7 +368,7 @@ class BouncerTest extends \PHPUnit\Framework\TestCase
     {
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('{"message":"No answer yet"}');
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('{"message":"No answer yet"}'));
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);

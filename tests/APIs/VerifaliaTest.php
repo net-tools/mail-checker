@@ -18,6 +18,12 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 	use GivenTrait;
 
 	
+    static function toStream($str)
+    {
+         return \GuzzleHttp\Psr7\Utils::streamFor($str);
+    }
+    
+    
 	
     public function testUpload()
     {
@@ -269,7 +275,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 	 			]
 	 		}	
 }';
-		$stub_guzzle_response->method('getBody')->willReturn($json);
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream($json));
 		
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
@@ -438,7 +444,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 	 			]
 	 		}	
 }';
-		$stub_guzzle_response3->method('getBody')->willReturn($json);
+		$stub_guzzle_response3->method('getBody')->willReturn(self::toStream($json));
 		
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
@@ -583,7 +589,7 @@ class VerifaliaTest extends \PHPUnit\Framework\TestCase
 	 			]
 	 		}	
 }';
-		$stub_guzzle_response3->method('getBody')->willReturn($json);
+		$stub_guzzle_response3->method('getBody')->willReturn(self::toStream($json));
 		
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
