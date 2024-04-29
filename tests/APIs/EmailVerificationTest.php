@@ -224,7 +224,7 @@ class EmailVerificationTest extends \PHPUnit\Framework\TestCase
 				}
 	 		]
 		}';
-		$stub_guzzle_response->method('getBody')->will($this->onConsecutiveCalls(self::toStream($json_completed), self::toStream($json_failed)));
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream($json_completed), self::toStream($json_failed));
 		
 				
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
